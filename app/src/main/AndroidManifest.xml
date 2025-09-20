@@ -1,0 +1,43 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.zybooks.courtneywarneropt2">
+
+    <!--  Permissions -->
+    <uses-permission android:name="android.permission.SEND_SMS"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <uses-feature android:name="android.hardware.telephony" android:required="false"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.CourtneyWarnerOpt2"
+        android:hardwareAccelerated="true"
+        android:largeHeap="true">
+
+        <!--  MAIN ENTRY POINT (Login or Main Activity) -->
+        <activity android:name=".LoginActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <!--  Other Activities -->
+        <activity android:name=".EventListActivity" android:exported="true"/>
+        <activity android:name=".AddEventActivity" android:exported="true"/>
+        <activity android:name=".EditEventActivity" android:exported="true"/>
+        <activity android:name=".SMSActivity" android:exported="true"/>
+        <activity android:name=".RegisterActivity" android:exported="true"/>
+
+        <!--  Broadcast Receiver for SMS Reminders -->
+        <receiver android:name=".SmsBroadcastReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="com.zybooks.courtneywarneropt2.SMS_REMINDER"/>
+            </intent-filter>
+        </receiver>
+
+    </application>
+</manifest>

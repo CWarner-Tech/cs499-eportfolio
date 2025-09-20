@@ -1,0 +1,37 @@
+<resources>
+    <string name="app_name">Courtney Warner Opt 2</string>
+    <string name="enter_password">Enter Password</string>
+    <string name="login">Login</string>
+    <string name="create_account">Create Account</string>
+    <string name="enter_username">Enter Username</string>
+    <string name="event_planner_login">Event Planner Login</string>
+    <string name="clock_background">Clock Background</string>
+    <string name="event_name">Event Name</string>
+    <string name="date">Date</string>
+    <string name="time">Time</string>
+    <string name="delete">Delete</string>
+    <string name="modify">Modify</string>
+    <string name="back_to_events">Back to Events</string>
+    <string name="checking_sms_permission">Checking SMS Permission...</string>
+    <string name="request_sms_permission">Request SMS Permission</string>
+    <string name="upcoming_events">Upcoming Events</string>
+    <string name="enter_event_name">Enter Event Name</string>
+    <string name="select_event_date">Select Event Date</string>
+    <string name="select_event_time">Select Event Time</string>
+    <string name="add_event">Add Event</string>
+    <string name="add_new_event">Add New Event</string>
+    <string name="save_event">Save Event</string>
+    <string name="event_deleted">Event Deleted Successfully</string>
+    <string name="event_updated">Event Updated Successfully</string>
+    <string name="event_saved">Event Saved Successfully</string>
+    <string name="registration_successful">User Registered Successfully</string>
+    <string name="registration_failed">Registration Failed</string>
+    <string name="login_error">Invalid Username or Password</string>
+    <string name="logout">Logout</string>
+    <string name="confirm_logout">Are you sure you want to log out?</string>
+    <string name="logout_success">You have been logged out successfully.</string>
+    <string name="cancel">Cancel</string>
+    <string name="my_events">My Events</string>
+    <string name="no_upcoming_events">No Upcoming Events</string>
+</resources>
+
