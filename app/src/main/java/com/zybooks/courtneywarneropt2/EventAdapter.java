@@ -16,11 +16,12 @@ import java.util.List;
 // Adapter for displaying a list of events in a RecyclerView
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
 
-    private List<Event> eventList;
-    private Context context;
-    private EventDatabaseHelper dbHelper;
-    private int userId;
-    private Runnable emptyListCallback; // Callback for handling empty list
+    private final List<Event> eventList;//Marked as final
+    private final Context context;//Marked as final
+    private final EventDatabaseHelper dbHelper;//Marked as final
+    private final int userId;//Marked as final
+    // Marked as final
+    private final Runnable emptyListCallback; // Callback for handling empty list
 
     // Constructor to initialize event list, context, and database helper
     public EventAdapter(List<Event> eventList, Context context, int userId, Runnable emptyListCallback) {
@@ -43,8 +44,10 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
         Event event = eventList.get(position);
         holder.tvEventName.setText(event.getName());
-        holder.tvEventDate.setText("Date: " + event.getDate());
-        holder.tvEventTime.setText("Time: " + event.getTime());
+
+        // Use string resources for "Date: " and "Time: "
+        holder.tvEventDate.setText(context.getString(R.string.event_date, event.getDate()));
+        holder.tvEventTime.setText(context.getString(R.string.event_time, event.getTime()));
 
         // Edit event on button click
         holder.btnEditEvent.setOnClickListener(v -> {
@@ -64,10 +67,12 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     // Displays a confirmation dialog before deleting an event
     private void showDeleteConfirmationDialog(Event event, int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Delete Event")
-                .setMessage("Are you sure you want to delete this event?")
-                .setPositiveButton("Yes", (dialog, which) -> deleteEvent(event, position))
-                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+
+        //Use string resources for delete event
+        builder.setTitle(context.getString(R.string.delete_event_title))
+                .setMessage(context.getString(R.string.delete_event_message))
+                .setPositiveButton(context.getString(R.string.yes), (dialog, which) -> deleteEvent(event, position))
+                .setNegativeButton(context.getString(R.string.cancel), (dialog, which) -> dialog.dismiss())
                 .show();
     }
 
@@ -77,14 +82,17 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         if (isDeleted) {
             eventList.remove(position);
             notifyItemRemoved(position);
-            Toast.makeText(context, "Event deleted", Toast.LENGTH_SHORT).show();
+
+            //Use string resource for "Event deleted"
+            Toast.makeText(context, context.getString(R.string.event_deleted), Toast.LENGTH_SHORT).show();
 
             // Notify if the list is empty
             if (eventList.isEmpty()) {
                 emptyListCallback.run();
             }
         } else {
-            Toast.makeText(context, "Failed to delete event", Toast.LENGTH_SHORT).show();
+            //Use string resource for "Failed to delete event"
+            Toast.makeText(context, context.getString(R.string.event_delete_failed), Toast.LENGTH_SHORT).show();
         }
     }
 

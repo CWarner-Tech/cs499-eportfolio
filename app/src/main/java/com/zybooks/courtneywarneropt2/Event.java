@@ -3,10 +3,10 @@ package com.zybooks.courtneywarneropt2;
 // Represents an event with ID, user association, name, date, and time
 public class Event {
     private final int id;
-    private int userId;
-    private String name;
-    private String date;
-    private String time;
+    private final int userId; // Marked final because it is only set once in constructor
+    private final String name; //Marked final for immutability
+    private final String date; // Marked final for immutability
+    private final String time; //Marked final for immutability
 
     // Constructor to initialize event details
     public Event(int id, int userId, String name, String date, String time) {
@@ -23,6 +23,7 @@ public class Event {
     }
 
     // Getter for associated user ID
+    //Currently unused, kept for future use (filtering events by user)
     public int getUserId() {
         return userId;
     }

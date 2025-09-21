@@ -46,13 +46,15 @@ public class SMSActivity extends AppCompatActivity {
     // Displays an alert dialog explaining why SMS permission is needed
     private void showPermissionExplanation() {
         new AlertDialog.Builder(this)
-                .setTitle("SMS Permission Required")
-                .setMessage("This app needs SMS permission to send event reminders. Please allow SMS access.")
-                .setPositiveButton("OK", (dialog, which) ->
+                // Use string resources
+                .setTitle(getString(R.string.sms_permission_required))
+                .setMessage(getString(R.string.sms_permission_message))
+                .setPositiveButton(getString(R.string.ok), (dialog, which) ->
                         ActivityCompat.requestPermissions(SMSActivity.this, new String[]{Manifest.permission.SEND_SMS}, SMS_PERMISSION_CODE)
                 )
-                .setNegativeButton("Cancel", (dialog, which) -> {
-                    Toast.makeText(this, "SMS Permission Denied!", Toast.LENGTH_SHORT).show();
+                .setNegativeButton(getString(R.string.cancel), (dialog, which) -> {
+                    //Use string resource
+                    Toast.makeText(this, getString(R.string.sms_permission_denied), Toast.LENGTH_SHORT).show();
                     returnToPreviousScreen();
                 })
                 .show();
@@ -60,7 +62,8 @@ public class SMSActivity extends AppCompatActivity {
 
     // Simulates sending an SMS notification
     private void sendSmsNotification() {
-        Toast.makeText(this, "📩 SMS Reminder Sent!", Toast.LENGTH_SHORT).show();
+        //Use string resource
+        Toast.makeText(this, getString(R.string.sms_sent), Toast.LENGTH_SHORT).show();
         returnToPreviousScreen();
     }
 
@@ -80,7 +83,8 @@ public class SMSActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 sendSmsNotification();
             } else {
-                Toast.makeText(this, "SMS Permission Denied!", Toast.LENGTH_SHORT).show();
+                //Use string resource
+                Toast.makeText(this, getString(R.string.sms_permission_denied), Toast.LENGTH_SHORT).show();
             }
             returnToPreviousScreen();
         }

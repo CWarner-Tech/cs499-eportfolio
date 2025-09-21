@@ -39,7 +39,8 @@ public class EventListActivity extends AppCompatActivity {
         // Get userId from Intent
         userId = getIntent().getIntExtra("user_id", -1);
         if (userId == -1) {
-            Toast.makeText(this, "User ID missing. Please log in again.", Toast.LENGTH_LONG).show();
+            //Use string resource
+            Toast.makeText(this, getString(R.string.user_id_missing), Toast.LENGTH_LONG).show();
             finish();
             return;
         }
@@ -76,11 +77,7 @@ public class EventListActivity extends AppCompatActivity {
             recyclerViewEvents.setAdapter(eventAdapter);
 
             recyclerViewEvents.post(() -> {
-                if (eventAdapter.getItemCount() > 4) {
-                    recyclerViewEvents.setVerticalScrollBarEnabled(true);
-                } else {
-                    recyclerViewEvents.setVerticalScrollBarEnabled(false);
-                }
+                recyclerViewEvents.setVerticalScrollBarEnabled(eventAdapter.getItemCount() > 4);
             });
         }
     }
@@ -94,15 +91,17 @@ public class EventListActivity extends AppCompatActivity {
 
     private void showLogoutConfirmationDialog() {
         new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Logout")
-                .setMessage("Are you sure you want to log out?")
-                .setPositiveButton("Yes", (dialog, which) -> logoutUser())
-                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                //Use string resources
+                .setTitle(getString(R.string.logout))
+                .setMessage(getString(R.string.confirm_logout))
+                .setPositiveButton(getString(R.string.yes), (dialog, which) -> logoutUser())
+                .setNegativeButton(getString(R.string.cancel), (dialog, which) -> dialog.dismiss())
                 .show();
     }
 
     private void logoutUser() {
-        Toast.makeText(EventListActivity.this, "You have successfully logged out.", Toast.LENGTH_SHORT).show();
+        //Use string resource
+        Toast.makeText(EventListActivity.this, getString(R.string.logout_success), Toast.LENGTH_SHORT).show();
 
         Intent intent = new Intent(EventListActivity.this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

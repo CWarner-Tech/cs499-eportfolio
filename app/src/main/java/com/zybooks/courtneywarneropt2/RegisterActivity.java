@@ -33,23 +33,27 @@ public class RegisterActivity extends AppCompatActivity {
 
             // Validate input fields
             if (newUsername.isEmpty()) {
-                etNewUsername.setError("Enter a username");
+                //Use string resource
+                etNewUsername.setError(getString(R.string.error_enter_username));
                 return;
             }
 
             if (newPassword.isEmpty()) {
-                etNewPassword.setError("Enter a password");
+                //Use string resource
+                etNewPassword.setError(getString(R.string.error_enter_password));
                 return;
             }
 
             // Attempt user registration
             if (eventDbHelper.registerUser(newUsername, newPassword)) {
-                Toast.makeText(RegisterActivity.this, "Account Created! Please Log In.", Toast.LENGTH_LONG).show();
+                // Use string resource
+                Toast.makeText(RegisterActivity.this, getString(R.string.account_created), Toast.LENGTH_LONG).show();
                 Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
                 startActivity(intent);
                 finish();
             } else {
-                Toast.makeText(RegisterActivity.this, "Username already exists. Choose another.", Toast.LENGTH_LONG).show();
+                // Use string resource
+                Toast.makeText(RegisterActivity.this, getString(R.string.username_exists), Toast.LENGTH_LONG).show();
             }
         });
 

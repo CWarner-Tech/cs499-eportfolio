@@ -34,18 +34,22 @@
         android:orientation="horizontal"
         android:paddingTop="5dp">
 
+        <!-- Changed hardcoded "Modify" to @string/modify -->
+        <!-- Note: layout_width="0dp" with layout_weight="1" is intentional.
+        This allows the Modify and Delete buttons to evenly share space. -->
         <Button
             android:id="@+id/btnEditEvent"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="Modify"/>
+            android:text="@string/modify"/>
 
+        <!-- Changed hardcoded "Delete" to @string/delete -->
         <Button
             android:id="@+id/btnDeleteEvent"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="Delete"/>
+            android:text="@string/delete"/>
     </LinearLayout>
 </LinearLayout>

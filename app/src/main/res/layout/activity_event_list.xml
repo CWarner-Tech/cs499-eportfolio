@@ -4,11 +4,12 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <!-- Changed hardcoded "Logout" to @string/logout -->
     <Button
         android:id="@+id/btnLogout"
         android:layout_width="100dp"
         android:layout_height="wrap_content"
-        android:text="Logout"
+        android:text="@string/logout"
         android:textSize="14sp"
         android:textColor="@color/white"
         android:background="@drawable/button_style"
@@ -16,6 +17,7 @@
         android:textStyle="bold"
         android:layout_margin="8dp"/>
 
+    <!-- Changed hardcoded "Add Event" to @string/add_event -->
     <!-- Add Event Button (Full Width) -->
     <Button
         android:id="@+id/btnAddEvent"
@@ -46,7 +48,7 @@
         android:id="@+id/tvNoUpcomingEvents"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="No Upcoming Events"
+        android:text="@string/no_upcoming_events"
         android:textSize="20sp"
         android:textColor="@android:color/white"
         android:textStyle="bold"

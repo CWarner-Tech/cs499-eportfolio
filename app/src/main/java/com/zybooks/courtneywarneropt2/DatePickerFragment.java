@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import java.util.Calendar;
+import java.util.Locale;//Added import for locale
 
 public class DatePickerFragment extends DialogFragment {
 
@@ -21,11 +22,24 @@ public class DatePickerFragment extends DialogFragment {
         int day = c.get(Calendar.DAY_OF_MONTH);
 
         // Create and return DatePickerDialog
-        return new DatePickerDialog(getActivity(), (view, year1, month1, dayOfMonth) -> {
-            EditText etEventDate = getActivity().findViewById(R.id.etEventDate);
-            // Format date as MM/DD/YYYY and set to EditText
-            String formattedDate = String.format("%02d/%02d/%d", month1 + 1, dayOfMonth, year1);
-            etEventDate.setText(formattedDate);
+        // Declare DatePickerDialog and assign it to a variable
+        DatePickerDialog datePickerDialog = new DatePickerDialog(requireActivity(), (view, year1, month1, dayOfMonth) -> {
+            EditText etEventDate = requireActivity().findViewById(R.id.etEventDate);
+
+            // Add null-safety
+            if (etEventDate != null) {
+                // Use Locale.US explicitly to avoid default locale bug
+                String formattedDate = String.format(Locale.US, "%02d/%02d/%d", month1 + 1, dayOfMonth, year1);
+                etEventDate.setText(formattedDate);
+
+                // Clear error if a valid date is chosen
+                etEventDate.setError(null);
+            }
         }, year, month, day);
+
+        // Prevent past dates
+        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis());
+
+        return datePickerDialog; //return the correct variable
     }
 }

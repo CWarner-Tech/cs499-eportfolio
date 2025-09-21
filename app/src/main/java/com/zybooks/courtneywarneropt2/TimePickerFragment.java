@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import java.util.Calendar;
+import java.util.Locale;
 
 // Time picker fragment for selecting event time
 public class TimePickerFragment extends DialogFragment {
@@ -29,16 +30,19 @@ public class TimePickerFragment extends DialogFragment {
             int hourFormatted;
 
             if (hourOfDay >= 12) {
-                amPm = "PM";
+                amPm = getString(R.string.pm); // FIXED
                 hourFormatted = (hourOfDay == 12) ? 12 : hourOfDay - 12;
             } else {
-                amPm = "AM";
+                amPm = getString(R.string.am); // FIXED
                 hourFormatted = (hourOfDay == 0) ? 12 : hourOfDay;
             }
 
             // Format and set selected time
-            String formattedTime = String.format("%02d:%02d %s", hourFormatted, minute1, amPm);
-            etEventTime.setText(formattedTime);
+            String formattedTime = String.format(Locale.US, "%02d:%02d %s", hourFormatted, minute1, amPm); // FIXED
+            if (etEventTime != null) {
+                etEventTime.setText(formattedTime);
+                etEventTime.setError(null); // FIXED: Clear previous error if valid time is selected
+            }
         }, hour, minute, false); // false enforces 12-hour format
     }
 }

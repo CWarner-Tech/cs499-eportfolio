@@ -117,6 +117,7 @@ public class EventDatabaseHelper extends SQLiteOpenHelper {
 
         boolean exists = cursor.moveToFirst();  // Returns true if record found
         cursor.close();
+        db.close(); //Close DB here to avoid leaving it open
         return exists;
     }
 
@@ -140,6 +141,8 @@ public class EventDatabaseHelper extends SQLiteOpenHelper {
             }
             cursor.close();
         }
+
+        db.close(); //Close DB after query to prevent leaks
         return eventList;
     }
 

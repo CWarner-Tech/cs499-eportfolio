@@ -35,21 +35,25 @@ public class LoginActivity extends AppCompatActivity {
             // Verify user credentials
             int userId = userDbHelper.getUserId(username, password);
             if (userId != -1) {
-                Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
+                //Use string resource
+                Toast.makeText(LoginActivity.this, getString(R.string.login_success), Toast.LENGTH_SHORT).show();
+
                 Intent intent = new Intent(LoginActivity.this, EventListActivity.class);
                 intent.putExtra("user_id", userId);
                 startActivity(intent);
                 finish();
             } else {
                 // Show dialog prompting account creation
+
+                //Use string resources for dialog
                 new AlertDialog.Builder(LoginActivity.this)
-                        .setTitle("Invalid Login")
-                        .setMessage("Would you like to create an account?")
-                        .setPositiveButton("Yes", (dialog, which) -> {
+                        .setTitle(getString(R.string.invalid_login))
+                        .setMessage(getString(R.string.prompt_create_account))
+                        .setPositiveButton(getString(R.string.yes), (dialog, which) -> {
                             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
                             startActivity(intent);
                         })
-                        .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                        .setNegativeButton(getString(R.string.no), (dialog, which) -> dialog.dismiss())
                         .show();
             }
         });

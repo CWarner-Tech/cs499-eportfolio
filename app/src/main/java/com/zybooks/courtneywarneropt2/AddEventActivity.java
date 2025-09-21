@@ -13,7 +13,6 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -65,8 +64,13 @@ public class AddEventActivity extends AppCompatActivity {
     private void showDatePicker() {
         DatePickerDialog datePicker = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
             calendar.set(year, month, dayOfMonth);
+
+            //Specify Locale.US
             SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
             etEventDate.setText(dateFormat.format(calendar.getTime()));
+
+            //Clear any previous error if a valid date is chosen
+            etEventDate.setError(null);
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
 
         datePicker.getDatePicker().setMinDate(System.currentTimeMillis()); // Prevent past dates
@@ -78,8 +82,14 @@ public class AddEventActivity extends AppCompatActivity {
         TimePickerDialog timePicker = new TimePickerDialog(this, (view, hourOfDay, minute) -> {
             calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
             calendar.set(Calendar.MINUTE, minute);
+
+            //Specify Locale.US
             SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a", Locale.US);
             etEventTime.setText(timeFormat.format(calendar.getTime()));
+
+            //Clears previous error if a valid time is selected
+            etEventTime.setError(null);
+
         }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false);
 
         timePicker.show();
@@ -92,27 +102,66 @@ public class AddEventActivity extends AppCompatActivity {
         eventTime = etEventTime.getText().toString().trim();
 
         // Ensure all fields are filled
-        if (eventName.isEmpty() || eventDate.isEmpty() || eventTime.isEmpty()) {
-            Toast.makeText(this, "All fields are required!", Toast.LENGTH_SHORT).show();
+        //Previously only showed Toast for empty fields.
+        //Now using setError() so the error is visible on the input fields
+        //Uses string resources for localization instead of hardcoded text
+        if (eventName.isEmpty()) {
+            etEventName.setError(getString(R.string.error_event_name_required));
             return;
         }
 
-        // Enforce event name length limit
+        if (eventDate.isEmpty()) {
+            etEventDate.setError(getString(R.string.error_select_date));
+            return;
+        }
+
+        if (eventTime.isEmpty()) {
+            etEventTime.setError(getString(R.string.error_select_time));
+            return;
+        }
+
+        //Added a minimum length check to prevent 1 letter event names
+        //Uses string resources for localization instead of hardcoded text
+        if (eventName.length() < 3) {
+            etEventName.setError(getString(R.string.error_event_name_too_short));
+            return;
+        }
+        //Enforce event name length limit - removed Toast
+        //Uses string resources for localization instead of hardcoded text
         if (eventName.length() > 45) {
-            Toast.makeText(this, "Event name cannot exceed 45 characters", Toast.LENGTH_SHORT).show();
+            etEventName.setError(getString(R.string.error_event_name_too_long));
             return;
         }
 
-        // Ensure event date/time is in the future
+        //Separated past - time validation (only if the date is today)
         Calendar now = Calendar.getInstance();
-        if (calendar.before(now)) {
-            Toast.makeText(this, "Invalid: Event date/time has already passed!", Toast.LENGTH_LONG).show();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
+        String todayStr = dateFormat.format(now.getTime());
+
+        if (eventDate.equals(todayStr) && calendar.before(now)) {
+            //Uses string resources for localization instead of hardcoded text
+            etEventTime.setError(getString(R.string.invalid_event_time));
+            // Provides feedback using an AlertDialog instead of a Toast for better user clarity
+            new AlertDialog.Builder(this) //Added dialog for clearer feedback
+                    //Uses string resources for localization instead of hardcoded text
+                    .setTitle(getString(R.string.invalid_event_time_title))
+                    .setMessage(getString(R.string.invalid_event_time_dialog))
+                    .setPositiveButton(getString(R.string.ok), null)
+                    .show();
+
             return;
         }
 
         // Check for duplicate event before prompting for SMS
+        //Duplicate event detection
         if (dbHelper.eventExists(userId, eventName, eventDate, eventTime)) {
-            Toast.makeText(this, " Event already exists!", Toast.LENGTH_SHORT).show();
+            // Provides feedback using an AlertDialog instead of a Toast for better user clarity
+            //Uses string resources for localization instead of hardcoded text
+            new AlertDialog.Builder(this)
+                    .setTitle(getString(R.string.duplicate_event_title))
+                    .setMessage(getString(R.string.duplicate_event_message))
+                    .setPositiveButton(getString(R.string.ok), null)
+                    .show();
             return;
         }
 
@@ -122,16 +171,18 @@ public class AddEventActivity extends AppCompatActivity {
 
     // Displays SMS reminder prompt
     private void showSmsPrompt() {
+        //Replaced Toast with Dialog box
+        // Uses string resources for localization instead of hardcoded text
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enable SMS Reminder?")
-                .setMessage("Would you like to receive an SMS reminder for this event?")
-                .setPositiveButton("Yes", (dialog, which) -> {
+        builder.setTitle(getString(R.string.enable_sms_reminder_title))
+                .setMessage(getString(R.string.enable_sms_reminder_message))
+                .setPositiveButton(getString(R.string.yes), (dialog, which) -> {
                     if (checkSmsPermission()) {
-                        insertEvent(true); // Save with SMS reminder
+                        insertEvent(true);
                     }
                 })
-                .setNegativeButton("No", (dialog, which) -> {
-                    insertEvent(false); // Save without SMS reminder
+                .setNegativeButton(getString(R.string.no), (dialog, which) -> {
+                    insertEvent(false);
                 })
                 .setCancelable(false)
                 .show();
@@ -142,14 +193,28 @@ public class AddEventActivity extends AppCompatActivity {
         boolean inserted = dbHelper.insertEvent(userId, eventName, eventDate, eventTime);
 
         if (inserted) {
-            Toast.makeText(this, " Event added successfully.", Toast.LENGTH_SHORT).show();
-            if (scheduleReminder) {
-                checkExactAlarmPermission();
-            } else {
-                finish();
-            }
+            //Replaced Toast with Dialog for success feedback,
+            // Uses string resources for localization instead of hardcoded text
+            new AlertDialog.Builder(this)
+                    .setTitle(getString(R.string.success))
+                    .setMessage(getString(R.string.event_saved))
+                    .setPositiveButton(getString(R.string.ok), (dialog, which) -> {
+                        if (scheduleReminder) {
+                            checkExactAlarmPermission();
+                        } else {
+                            finish();
+                        }
+                    })
+                    .show();
         } else {
-            Toast.makeText(this, " Failed to add event.", Toast.LENGTH_SHORT).show();
+
+            //Replaced Toast with Dialog box failure feedback
+            // Uses string resources for localization instead of hardcoded text
+            new AlertDialog.Builder(this)
+                    .setTitle(getString(R.string.error))
+                    .setMessage(getString(R.string.error_event_add_failed))
+                    .setPositiveButton(getString(R.string.ok), null)
+                    .show();
         }
     }
 
@@ -171,8 +236,13 @@ public class AddEventActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 checkExactAlarmPermission(); // Proceed with reminder setup
             } else {
-                Toast.makeText(this, "SMS permission denied. No reminder will be sent.", Toast.LENGTH_SHORT).show();
-                insertEvent(false);
+                //Replaced Toast with Dialog box
+                // Uses string resources for localization instead of hardcoded text
+                new AlertDialog.Builder(this)
+                        .setTitle(getString(R.string.permission_denied_title))
+                        .setMessage(getString(R.string.permission_denied_message))
+                        .setPositiveButton(getString(R.string.ok), (dialog, which) -> insertEvent(false)) //FIXED
+                        .show();
             }
         }
     }
@@ -183,14 +253,21 @@ public class AddEventActivity extends AppCompatActivity {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (!alarmManager.canScheduleExactAlarms()) {
-                Toast.makeText(this, " Allow exact alarms for reminders!", Toast.LENGTH_LONG).show();
-                Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
-                startActivity(intent);
+                //Replaced Toast with Dialog box
+                // Uses string resources for localization instead of hardcoded text
+                new AlertDialog.Builder(this) //Dialog prompt for alam permission
+                        .setTitle(getString(R.string.permission_required_title))
+                        .setMessage(getString(R.string.permission_required_message))
+                        .setPositiveButton(getString(R.string.ok), (dialog, which) -> {
+                            Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                            startActivity(intent);
+                        })
+                        .show();
                 return;
             }
         }
 
-        scheduleReminder();
+        scheduleReminder(); // Only call if permission is allowed
     }
 
     // Schedules an SMS reminder using AlarmManager
@@ -209,11 +286,21 @@ public class AddEventActivity extends AppCompatActivity {
         try {
             long triggerTime = calendar.getTimeInMillis();
             alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
-            Toast.makeText(this, " SMS reminder set for " + eventTime, Toast.LENGTH_SHORT).show();
+            //Replaced Toast with Dialog box failure feedback
+            // Uses string resources for localization instead of hardcoded text
+            new AlertDialog.Builder(this) //Dialog replaces Toast for reminder confirmation
+                    .setTitle(getString(R.string.reminder_scheduled_title))
+                    .setMessage(getString(R.string.reminder_scheduled_message, eventTime))
+                    .setPositiveButton(getString(R.string.ok), (dialog, which) -> finish())
+                    .show();
         } catch (SecurityException e) {
-            Toast.makeText(this, " Unable to schedule exact alarm.", Toast.LENGTH_LONG).show();
+            //Replaced Toast with Dialog box failure feedback
+            // Uses string resources for localization instead of hardcoded text
+            new AlertDialog.Builder(this) //Dialog replaces Toast for error handling
+                    .setTitle(getString(R.string.error))
+                    .setMessage(getString(R.string.error_schedule_alarm))
+                    .setPositiveButton(getString(R.string.ok), null)
+                    .show();
         }
-
-        finish();
     }
 }
