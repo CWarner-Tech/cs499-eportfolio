@@ -1,31 +1,59 @@
 package com.zybooks.courtneywarneropt2;
 
 import android.app.AlertDialog;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.widget.Button;
+import android.widget.TextView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
 import java.util.List;
 
-// Adapter for displaying a list of events in a RecyclerView
-public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
+/**
+ * EventAdapter is responsible for displaying Event objects in a RecyclerView.
+ * Enhancement for Milestone Three (Algorithms & Data Structures):
+ * - Uses ListAdapter with DiffUtil for efficient list updates.
+ * - Cancels any scheduled reminders if the corresponding event is deleted.
+ */
+public class EventAdapter extends ListAdapter<Event, EventAdapter.EventViewHolder> {
 
-    private final List<Event> eventList;//Marked as final
-    private final Context context;//Marked as final
-    private final EventDatabaseHelper dbHelper;//Marked as final
-    private final int userId;//Marked as final
-    // Marked as final
-    private final Runnable emptyListCallback; // Callback for handling empty list
+    private final Context context;
+    private final EventDatabaseHelper dbHelper;
+    private final int userId;
+    private final Runnable emptyListCallback;
 
-    // Constructor to initialize event list, context, and database helper
-    public EventAdapter(List<Event> eventList, Context context, int userId, Runnable emptyListCallback) {
-        this.eventList = eventList;
+    /**
+     * DiffUtil.ItemCallback:
+     * Defines how to compare Event objects when the list changes.
+     */
+    private static final DiffUtil.ItemCallback<Event> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<Event>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull Event oldItem, @NonNull Event newItem) {
+                    return oldItem.getId() == newItem.getId();
+                }
+
+                @Override
+                public boolean areContentsTheSame(@NonNull Event oldItem, @NonNull Event newItem) {
+                    return oldItem.getName().equals(newItem.getName())
+                            && oldItem.getDate().equals(newItem.getDate())
+                            && oldItem.getTime().equals(newItem.getTime());
+                }
+            };
+
+    public EventAdapter(Context context, int userId, Runnable emptyListCallback) {
+        super(DIFF_CALLBACK);
         this.context = context;
         this.userId = userId;
         this.dbHelper = new EventDatabaseHelper(context);
@@ -35,21 +63,20 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     @NonNull
     @Override
     public EventViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Inflate event item layout
         View view = LayoutInflater.from(context).inflate(R.layout.activity_item_event, parent, false);
         return new EventViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
-        Event event = eventList.get(position);
-        holder.tvEventName.setText(event.getName());
+        Event event = getItem(position);
 
-        // Use string resources for "Date: " and "Time: "
+        // Bind event data to UI
+        holder.tvEventName.setText(event.getName());
         holder.tvEventDate.setText(context.getString(R.string.event_date, event.getDate()));
         holder.tvEventTime.setText(context.getString(R.string.event_time, event.getTime()));
 
-        // Edit event on button click
+        // Edit button
         holder.btnEditEvent.setOnClickListener(v -> {
             Intent intent = new Intent(context, EditEventActivity.class);
             intent.putExtra("event_id", event.getId());
@@ -60,53 +87,77 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             context.startActivity(intent);
         });
 
-        // Show delete confirmation dialog
-        holder.btnDeleteEvent.setOnClickListener(v -> showDeleteConfirmationDialog(event, position));
+        // Delete button
+        holder.btnDeleteEvent.setOnClickListener(v -> showDeleteConfirmationDialog(event));
     }
 
-    // Displays a confirmation dialog before deleting an event
-    private void showDeleteConfirmationDialog(Event event, int position) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-
-        //Use string resources for delete event
-        builder.setTitle(context.getString(R.string.delete_event_title))
+    /**
+     * Confirmation dialog before deleting.
+     */
+    private void showDeleteConfirmationDialog(Event event) {
+        new AlertDialog.Builder(context)
+                .setTitle(context.getString(R.string.delete_event_title))
                 .setMessage(context.getString(R.string.delete_event_message))
-                .setPositiveButton(context.getString(R.string.yes), (dialog, which) -> deleteEvent(event, position))
+                .setPositiveButton(context.getString(R.string.yes), (dialog, which) -> deleteEvent(event))
                 .setNegativeButton(context.getString(R.string.cancel), (dialog, which) -> dialog.dismiss())
                 .show();
     }
 
-    // Deletes an event and updates the RecyclerView
-    private void deleteEvent(Event event, int position) {
+    /**
+     * Deletes event from DB, cancels reminder, and updates RecyclerView via DiffUtil.
+     */
+    private void deleteEvent(Event event) {
         boolean isDeleted = dbHelper.deleteEvent(event.getId(), userId);
         if (isDeleted) {
-            eventList.remove(position);
-            notifyItemRemoved(position);
+            cancelReminder(event);
 
-            //Use string resource for "Event deleted"
+            // Create a new list without the deleted event
+            List<Event> updatedList = new ArrayList<>(getCurrentList());
+            updatedList.remove(event);
+
+            // Submit the new list to DiffUtil
+            submitList(updatedList);
+
             Toast.makeText(context, context.getString(R.string.event_deleted), Toast.LENGTH_SHORT).show();
 
-            // Notify if the list is empty
-            if (eventList.isEmpty()) {
+            if (updatedList.isEmpty()) {
                 emptyListCallback.run();
             }
         } else {
-            //Use string resource for "Failed to delete event"
             Toast.makeText(context, context.getString(R.string.event_delete_failed), Toast.LENGTH_SHORT).show();
         }
     }
 
-    @Override
-    public int getItemCount() {
-        return eventList.size();
+    /**
+     * Cancels a scheduled reminder when an event is deleted.
+     */
+    private void cancelReminder(Event event) {
+        Intent intent = new Intent(context, SmsBroadcastReceiver.class);
+        intent.putExtra("eventName", event.getName());
+        intent.putExtra("eventDate", event.getDate());
+        intent.putExtra("eventTime", event.getTime());
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                context,
+                event.getName().hashCode(), // Same requestCode used in AddEventActivity
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager != null) {
+            alarmManager.cancel(pendingIntent);
+        }
     }
 
-    // ViewHolder class for event items
-    public static class EventViewHolder extends RecyclerView.ViewHolder {
+    /**
+     * Holds references to UI components for each event row.
+     */
+    static class EventViewHolder extends RecyclerView.ViewHolder {
         TextView tvEventName, tvEventDate, tvEventTime;
         Button btnEditEvent, btnDeleteEvent;
 
-        public EventViewHolder(@NonNull View itemView) {
+        EventViewHolder(@NonNull View itemView) {
             super(itemView);
             tvEventName = itemView.findViewById(R.id.tvEventName);
             tvEventDate = itemView.findViewById(R.id.tvEventDate);
