@@ -171,7 +171,7 @@ public class EditEventActivity extends AppCompatActivity {
             }
 
         } catch (ParseException e) {
-            // Replace Toast with dialog and use string resource
+            // Dialog box and string resource
             new AlertDialog.Builder(this)
                     .setTitle(getString(R.string.error))
                     .setMessage(getString(R.string.error_schedule_alarm))
@@ -179,9 +179,22 @@ public class EditEventActivity extends AppCompatActivity {
                     .show();
             return;
         }
+        // Convert updatedDate and updatedTime into epoch values before saving
+        long dateEpoch = 0;
+        long timeEpoch = 0;
+        try {
+            SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
+            SimpleDateFormat tf = new SimpleDateFormat("hh:mm a", Locale.US);
+            Date parseDate = df.parse(updatedDate);
+            Date parseTime = tf.parse(updatedTime);
+            if (parseDate != null) dateEpoch = parseDate.getTime();
+            if (parseTime != null) timeEpoch = parseTime.getTime();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
         // Update event in database
-        boolean isUpdated = dbHelper.updateEvent(eventId, userId, updatedName, updatedDate, updatedTime);
+        boolean isUpdated = dbHelper.updateEvent(eventId, userId, updatedName, dateEpoch, timeEpoch);
 
         if (isUpdated) {
             //Replace Toast with dialog and use string resource

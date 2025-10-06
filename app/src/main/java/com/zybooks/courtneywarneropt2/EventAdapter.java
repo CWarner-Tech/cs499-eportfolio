@@ -71,19 +71,36 @@ public class EventAdapter extends ListAdapter<Event, EventAdapter.EventViewHolde
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
         Event event = getItem(position);
 
-        // Bind event data to UI
+        // Display event name
         holder.tvEventName.setText(event.getName());
-        holder.tvEventDate.setText(context.getString(R.string.event_date, event.getDate()));
-        holder.tvEventTime.setText(context.getString(R.string.event_time, event.getTime()));
 
-        // Edit button
+        //Convert epoch values (stored as Strings) back to readable date/time
+        try {
+            long dateEpoch = Long.parseLong(event.getDate());
+            long timeEpoch = Long.parseLong(event.getTime());
+
+            java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("MM/dd/yyyy", java.util.Locale.US);
+            java.text.SimpleDateFormat timeFormat = new java.text.SimpleDateFormat("hh:mm a", java.util.Locale.US);
+
+            String formattedDate = dateFormat.format(new java.util.Date(dateEpoch));
+            String formattedTime = timeFormat.format(new java.util.Date(timeEpoch));
+
+            holder.tvEventDate.setText(context.getString(R.string.event_date, formattedDate));
+            holder.tvEventTime.setText(context.getString(R.string.event_time, formattedTime));
+        } catch (NumberFormatException e) {
+            //Fallback for old data (text-based date/time)
+            holder.tvEventDate.setText(context.getString(R.string.event_date, event.getDate()));
+            holder.tvEventTime.setText(context.getString(R.string.event_time, event.getTime()));
+        }
+
+        //Pass formatted data to EditEventActivity
         holder.btnEditEvent.setOnClickListener(v -> {
             Intent intent = new Intent(context, EditEventActivity.class);
             intent.putExtra("event_id", event.getId());
             intent.putExtra("user_id", userId);
             intent.putExtra("event_name", event.getName());
-            intent.putExtra("event_date", event.getDate());
-            intent.putExtra("event_time", event.getTime());
+            intent.putExtra("event_date", holder.tvEventDate.getText().toString().replace("Date: ", ""));
+            intent.putExtra("event_time", holder.tvEventTime.getText().toString().replace("Time: ", ""));
             context.startActivity(intent);
         });
 

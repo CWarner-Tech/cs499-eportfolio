@@ -5,6 +5,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +15,7 @@ import java.util.List;
 public class EventDatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "event_tracker.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2; // Bump version after schema change
 
     // Users Table
     private static final String TABLE_USERS = "users";
@@ -41,13 +44,14 @@ public class EventDatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_PASSWORD + " TEXT NOT NULL)";
         db.execSQL(createUsersTable);
 
-        // Create Events Table (Fixed)
+        // Create Events Table with integer timestamps
         String createEventsTable = "CREATE TABLE " + TABLE_EVENTS + " (" +
                 COLUMN_EVENT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_USER_ID + " INTEGER, " +  // Foreign key linking to Users table
                 COLUMN_EVENT_NAME + " TEXT, " +
-                COLUMN_EVENT_DATE + " TEXT, " +
-                COLUMN_EVENT_TIME + " TEXT, " +
+                COLUMN_EVENT_DATE + " INTEGER, " +
+                COLUMN_EVENT_TIME + " INTEGER, " +
+                "UNIQUE(" + COLUMN_USER_ID + ", " + COLUMN_EVENT_NAME + ", " + COLUMN_EVENT_DATE + ", " + COLUMN_EVENT_TIME + "), "+
                 "FOREIGN KEY(" + COLUMN_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_USER_ID + ") ON DELETE CASCADE)";
         db.execSQL(createEventsTable);
     }
@@ -60,24 +64,44 @@ public class EventDatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // Registers a new user
+    // Helper method to hash passwords
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes());
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                hexString.append(String.format("%02x", b));
+            }
+        return hexString.toString(); }
+        catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return password; // fallback
+        }
+    }
+
+    // Registers a new user hashed password
     public boolean registerUser(String username, String password) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_USERNAME, username);
-        values.put(COLUMN_PASSWORD, password);
+        values.put(COLUMN_PASSWORD, hashPassword(password));//Hash before storing
 
         long result = db.insert(TABLE_USERS, null, values);
         db.close();
         return result != -1;  // Returns true if registration is successful
     }
 
-    // Verifies login credentials and gets User ID
+    // Verifies login credentials and gets User ID, hash login password before comparison
     public int getUserId(String username, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
+
+        // Hash the password input from user to match stored hash
+        String hashedInput = hashPassword(password); // 🟢 NEW LINE
+
         Cursor cursor = db.query(TABLE_USERS, new String[]{COLUMN_USER_ID},
                 COLUMN_USERNAME + "=? AND " + COLUMN_PASSWORD + "=?",
-                new String[]{username, password}, null, null, null);
+                new String[]{username, hashedInput}, null, null, null); // 🟢 use hashedInput instead of password
 
         int userId = -1;
         if (cursor.moveToFirst()) {
@@ -88,9 +112,9 @@ public class EventDatabaseHelper extends SQLiteOpenHelper {
         return userId;  // Returns user ID or -1 if not found
     }
 
-    // Inserts a new event
-    public boolean insertEvent(int userId, String name, String date, String time) {
-        if (eventExists(userId, name, date, time)) {
+    // Inserts a new event, Updated insertEvent() to use epoch-based storage
+    public boolean insertEvent(int userId, String name, long dateEpoch, long timeEpoch) {
+        if (eventExists(userId, name, dateEpoch, timeEpoch)) {
             return false;  // Prevent duplicate event
         }
 
@@ -98,8 +122,8 @@ public class EventDatabaseHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(COLUMN_USER_ID, userId);
         values.put(COLUMN_EVENT_NAME, name);
-        values.put(COLUMN_EVENT_DATE, date);
-        values.put(COLUMN_EVENT_TIME, time);
+        values.put(COLUMN_EVENT_DATE, dateEpoch);
+        values.put(COLUMN_EVENT_TIME, timeEpoch);
 
         long result = db.insert(TABLE_EVENTS, null, values);
         db.close();
@@ -107,12 +131,12 @@ public class EventDatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Checks if an event already exists
-    public boolean eventExists(int userId, String name, String date, String time) {
+    public boolean eventExists(int userId, String name, long dateEpoch, long timeEpoch) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_EVENTS,
                 new String[]{COLUMN_EVENT_ID},
                 COLUMN_USER_ID + "=? AND " + COLUMN_EVENT_NAME + "=? AND " + COLUMN_EVENT_DATE + "=? AND " + COLUMN_EVENT_TIME + "=?",
-                new String[]{String.valueOf(userId), name, date, time},
+                new String[]{String.valueOf(userId), name, String.valueOf(dateEpoch), String.valueOf(timeEpoch)},
                 null, null, null);
 
         boolean exists = cursor.moveToFirst();  // Returns true if record found
@@ -135,9 +159,9 @@ public class EventDatabaseHelper extends SQLiteOpenHelper {
             while (cursor.moveToNext()) {
                 int id = cursor.getInt(0);
                 String name = cursor.getString(2);
-                String date = cursor.getString(3);
-                String time = cursor.getString(4);
-                eventList.add(new Event(id, userId, name, date, time));
+                long dateEpoch = cursor.getLong(3);
+                long timeEpoch = cursor.getLong(4);
+                eventList.add(new Event(id, userId, name, String.valueOf(dateEpoch), String.valueOf(timeEpoch)));
             }
             cursor.close();
         }
@@ -147,12 +171,12 @@ public class EventDatabaseHelper extends SQLiteOpenHelper {
     }
 
     //Updates an existing event
-    public boolean updateEvent(int eventId, int userId, String name, String date, String time) {
+    public boolean updateEvent(int eventId, int userId, String name, long dateEpoch, long timeEpoch) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_EVENT_NAME, name);
-        values.put(COLUMN_EVENT_DATE, date);
-        values.put(COLUMN_EVENT_TIME, time);
+        values.put(COLUMN_EVENT_DATE, dateEpoch);
+        values.put(COLUMN_EVENT_TIME, timeEpoch);
 
         int rowsAffected = db.update(TABLE_EVENTS, values, COLUMN_EVENT_ID + "=? AND " + COLUMN_USER_ID + "=?",
                 new String[]{String.valueOf(eventId), String.valueOf(userId)});

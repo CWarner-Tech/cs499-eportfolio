@@ -22,6 +22,9 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
+import java.text.ParseException;
+import java.util.Date;
+
 public class AddEventActivity extends AppCompatActivity {
 
     private static final int SMS_PERMISSION_REQUEST = 101;
@@ -102,9 +105,8 @@ public class AddEventActivity extends AppCompatActivity {
         eventTime = etEventTime.getText().toString().trim();
 
         // Ensure all fields are filled
-        //Previously only showed Toast for empty fields.
-        //Now using setError() so the error is visible on the input fields
-        //Uses string resources for localization instead of hardcoded text
+        //Using setError() so the error is visible on the input fields
+        //Uses string resources for localization
         if (eventName.isEmpty()) {
             etEventName.setError(getString(R.string.error_event_name_required));
             return;
@@ -151,12 +153,24 @@ public class AddEventActivity extends AppCompatActivity {
 
             return;
         }
+        // Converts date and time inputs into epoch values before saving to database
+        long dateEpoch = 0;
+        long timeEpoch = 0;
+        try {
+            SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
+            SimpleDateFormat tf = new SimpleDateFormat("hh:mm a", Locale.US);
+            Date parseDate = df.parse(eventDate);
+            Date parseTime = tf.parse(eventTime);
+            if (parseDate != null) dateEpoch = parseDate.getTime();
+            if (parseTime != null) timeEpoch = parseTime.getTime();}
+        catch (ParseException e) {
+            e.printStackTrace();
+        }// This replaces text-based date/time storage with numeric timestamps.
 
-        // Check for duplicate event before prompting for SMS
-        //Duplicate event detection
-        if (dbHelper.eventExists(userId, eventName, eventDate, eventTime)) {
-            // Provides feedback using an AlertDialog instead of a Toast for better user clarity
-            //Uses string resources for localization instead of hardcoded text
+        // Updated duplicate event check to use epoch timestamps
+        if (dbHelper.eventExists(userId, eventName, dateEpoch, timeEpoch)) {
+            // Provides feedback using an AlertDialog
+            //Uses string resources for localization
             new AlertDialog.Builder(this)
                     .setTitle(getString(R.string.duplicate_event_title))
                     .setMessage(getString(R.string.duplicate_event_message))
@@ -166,11 +180,12 @@ public class AddEventActivity extends AppCompatActivity {
         }
 
         // Prompt user for SMS reminder
-        showSmsPrompt();
+        showSmsPrompt(dateEpoch, timeEpoch);
     }
 
     // Displays SMS reminder prompt
-    private void showSmsPrompt() {
+    // Method updated to accept dateEpoch/timeEpoch
+    private void showSmsPrompt(long dateEpoch, long timeEpoch) {
         //Replaced Toast with Dialog box
         // Uses string resources for localization instead of hardcoded text
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -178,23 +193,23 @@ public class AddEventActivity extends AppCompatActivity {
                 .setMessage(getString(R.string.enable_sms_reminder_message))
                 .setPositiveButton(getString(R.string.yes), (dialog, which) -> {
                     if (checkSmsPermission()) {
-                        insertEvent(true);
+                        insertEvent(true, dateEpoch, timeEpoch);
                     }
                 })
                 .setNegativeButton(getString(R.string.no), (dialog, which) -> {
-                    insertEvent(false);
+                    insertEvent(false, dateEpoch, timeEpoch);
                 })
                 .setCancelable(false)
                 .show();
     }
 
     // Inserts event into database and schedules reminder if required
-    private void insertEvent(boolean scheduleReminder) {
-        boolean inserted = dbHelper.insertEvent(userId, eventName, eventDate, eventTime);
+    // Updated to accept epoch parameters
+    private void insertEvent(boolean scheduleReminder, long dateEpoch, long timeEpoch) {
+        boolean inserted = dbHelper.insertEvent(userId, eventName, dateEpoch, timeEpoch);
 
         if (inserted) {
-            //Replaced Toast with Dialog for success feedback,
-            // Uses string resources for localization instead of hardcoded text
+            // Uses string resources for localization
             new AlertDialog.Builder(this)
                     .setTitle(getString(R.string.success))
                     .setMessage(getString(R.string.event_saved))
@@ -208,8 +223,8 @@ public class AddEventActivity extends AppCompatActivity {
                     .show();
         } else {
 
-            //Replaced Toast with Dialog box failure feedback
-            // Uses string resources for localization instead of hardcoded text
+
+            // Uses string resources for localization
             new AlertDialog.Builder(this)
                     .setTitle(getString(R.string.error))
                     .setMessage(getString(R.string.error_event_add_failed))
@@ -236,24 +251,22 @@ public class AddEventActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 checkExactAlarmPermission(); // Proceed with reminder setup
             } else {
-                //Replaced Toast with Dialog box
-                // Uses string resources for localization instead of hardcoded text
+                // Uses string resources
                 new AlertDialog.Builder(this)
                         .setTitle(getString(R.string.permission_denied_title))
                         .setMessage(getString(R.string.permission_denied_message))
-                        .setPositiveButton(getString(R.string.ok), (dialog, which) -> insertEvent(false)) //FIXED
+                        .setPositiveButton(getString(R.string.ok), (dialog, which) -> insertEvent(false,0,0))
                         .show();
             }
         }
     }
 
-    // Checks if exact alarms are allowed for scheduling reminders
+    // Checks if exact alarms are allowed
     private void checkExactAlarmPermission() {
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (!alarmManager.canScheduleExactAlarms()) {
-                //Replaced Toast with Dialog box
                 // Uses string resources for localization instead of hardcoded text
                 new AlertDialog.Builder(this) //Dialog prompt for alam permission
                         .setTitle(getString(R.string.permission_required_title))
@@ -286,17 +299,15 @@ public class AddEventActivity extends AppCompatActivity {
         try {
             long triggerTime = calendar.getTimeInMillis();
             alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
-            //Replaced Toast with Dialog box failure feedback
             // Uses string resources for localization instead of hardcoded text
-            new AlertDialog.Builder(this) //Dialog replaces Toast for reminder confirmation
+            new AlertDialog.Builder(this)
                     .setTitle(getString(R.string.reminder_scheduled_title))
                     .setMessage(getString(R.string.reminder_scheduled_message, eventTime))
                     .setPositiveButton(getString(R.string.ok), (dialog, which) -> finish())
                     .show();
         } catch (SecurityException e) {
-            //Replaced Toast with Dialog box failure feedback
             // Uses string resources for localization instead of hardcoded text
-            new AlertDialog.Builder(this) //Dialog replaces Toast for error handling
+            new AlertDialog.Builder(this)
                     .setTitle(getString(R.string.error))
                     .setMessage(getString(R.string.error_schedule_alarm))
                     .setPositiveButton(getString(R.string.ok), null)
