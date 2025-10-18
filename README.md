@@ -1,4 +1,4 @@
-# Courtney Warner cs499-eportfolio
+# Courtney Warner CS499-ePortfolio
 Welcome to my ePortfolio for the Computer Science Capstone (CS499) at SNHU.
 This site will showcase:
 - My original project artifacts
