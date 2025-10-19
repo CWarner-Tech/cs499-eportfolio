@@ -35,22 +35,15 @@ The original artifact demonstrates full-stack mobile functionality before enhanc
 
 ---
 
-## Enhancement Comparisons
+## Enhancements
 Each enhancement branch expands on the original artifact in a specific Computer Science domain.  
-Click any comparison link below to view the exact code changes between the enhancement branch and the main (base) branch.
-
--
--
--
-
----
-
+Click any link below to view the exact code changes in the enhancement branch.
 ## Enhancement Narratives
 Each narrative explains the purpose of the artifact, the reasoning behind the enhancement, and the CS 499 outcomes demonstrated.
 
--
--
--
+- [Software Design & Engineering Enhancement](https://github.com/CWarner-Tech/cs499-eportfolio/tree/enhancement-software-design)
+- [Algorithms & Data Structures Enhancement](https://github.com/CWarner-Tech/cs499-eportfolio/tree/enhancement-algorithms-data-structures)
+- [Database Enhancement](https://github.com/CWarner-Tech/cs499-eportfolio/tree/enhancement-database)
 
 ---
 
