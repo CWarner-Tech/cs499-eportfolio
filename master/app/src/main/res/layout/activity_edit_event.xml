@@ -1,0 +1,67 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <Button
+        android:id="@+id/btnBackToEvents"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Back to Events"
+        android:textSize="20sp"
+        android:padding="8dp"
+        android:textStyle="bold"
+        android:layout_gravity="center"
+        android:layout_marginBottom="10dp"/>
+
+    <EditText
+        android:id="@+id/etEventName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Event Name"
+        android:textSize="20sp"
+        android:textColor="@android:color/white"
+        android:textColorHint="@android:color/white"
+        android:textStyle="bold"
+        android:background="@null"
+        android:maxLength="45"
+        android:inputType="text"/>
+
+    <EditText
+        android:id="@+id/etEventDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Select Date"
+        android:textSize="20sp"
+        android:textColor="@android:color/white"
+        android:textColorHint="@android:color/white"
+        android:textStyle="bold"
+        android:background="@null"
+        android:focusable="false"
+        android:clickable="true"/>
+
+    <EditText
+        android:id="@+id/etEventTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Select Time"
+        android:textSize="20sp"
+        android:textColor="@android:color/white"
+        android:textColorHint="@android:color/white"
+        android:textStyle="bold"
+        android:background="@null"
+        android:focusable="false"
+        android:clickable="true"/>
+
+
+    <Button
+        android:id="@+id/btnUpdateEvent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Update Event"
+        android:textSize="20sp"
+        android:padding="2dp"
+        android:textStyle="bold"
+        android:layout_marginBottom="10dp"/>
+</LinearLayout>
