@@ -40,9 +40,21 @@ The enhancement branches build upon the original Event Tracking App, each highli
 The links below open the full enhanced code and narrative, showcasing the improvements made in that category.
 Together, these narratives describe the artifact’s purpose, the reasoning behind the enhancements, and how they demonstrate mastery of the CS 499 program outcomes.
 
-- [Software Design & Engineering Enhancement](https://github.com/CWarner-Tech/cs499-eportfolio/tree/enhancement-software-design)
-- [Algorithms & Data Structures Enhancement](https://github.com/CWarner-Tech/cs499-eportfolio/tree/enhancement-algorithms-data-structures)
-- [Database Enhancement](https://github.com/CWarner-Tech/cs499-eportfolio/tree/enhancement-database)
+## Software Design and Engineering 
+-**Enhanced Code and Narrative:**
+ [Software Design & Engineering Enhancement](https://github.com/CWarner-Tech/cs499-eportfolio/tree/enhancement-software-design)
+- **Code Comparison:**
+ [View Commit Changes](https://github.com/CWarner-Tech/cs499-eportfolio/commit/89e553efa607374d5138ea6c8ba479fdc1e7919b)
+
+-**Enhanced Code and Narrative:**
+ [Algorithms & Data Structures Enhancement](https://github.com/CWarner-Tech/cs499-eportfolio/tree/enhancement-algorithms-data-structures)
+ - **Code Comparison:**
+[View Commit Changes](https://github.com/CWarner-Tech/cs499-eportfolio/commit/fa3617ccdb4627f97556d02bb21e34bb3888678d)
+
+-**Enhanced Code and Narrative:**
+ [Database Enhancement](https://github.com/CWarner-Tech/cs499-eportfolio/tree/enhancement-database)
+- **Code Comparison:**
+[View Commit Changes](https://github.com/CWarner-Tech/cs499-eportfolio/commit/842410bf5453b9fee8ea8bc6b49c97fdaf7f20d0)
 
 ---
 
@@ -59,4 +71,5 @@ This capstone experience represents the culmination of my Computer Science degre
 
 ## Repository Information
 This ePortfolio is hosted via **GitHub Pages** from the `main` branch.
-  
+All artifacts, enhancements, and narratives are available through the links provided above.
+
