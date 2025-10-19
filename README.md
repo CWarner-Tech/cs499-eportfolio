@@ -36,9 +36,9 @@ The original artifact demonstrates full-stack mobile functionality before enhanc
 ---
 
 ## Enhancements And Narratives
-Each enhancement branch expands on the original artifact in a specific Computer Science domain.  
-Click any link below to view the exact code changes in the enhancement branch.
-Each narrative explains the purpose of the artifact, the reasoning behind the enhancement, and the CS 499 outcomes demonstrated.
+The enhancement branches build upon the original Event Tracking App, each highlighting growth in a specific area of computer science.
+The links below open the full enhanced code and narrative, showcasing the improvements made in that category.
+Together, these narratives describe the artifact’s purpose, the reasoning behind the enhancements, and how they demonstrate mastery of the CS 499 program outcomes.
 
 - [Software Design & Engineering Enhancement](https://github.com/CWarner-Tech/cs499-eportfolio/tree/enhancement-software-design)
 - [Algorithms & Data Structures Enhancement](https://github.com/CWarner-Tech/cs499-eportfolio/tree/enhancement-algorithms-data-structures)
