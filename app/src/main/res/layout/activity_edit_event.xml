@@ -4,7 +4,7 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- Changed hardcoded "Back to Events" to @string/back_to_events -->
+    <!-- Changed hardcoded  "Back to Events" to @string/back_to_events -->
     <Button
         android:id="@+id/btnBackToEvents"
         android:layout_width="wrap_content"
